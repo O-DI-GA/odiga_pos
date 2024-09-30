@@ -4,7 +4,12 @@ import { View, Text, StyleSheet, Button, StatusBar } from "react-native";
 const Home = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Expo Init</Text>
+      <Text style={styles.title}>홈 화면</Text>
+      <Button title="메인 화면" onPress={() => navigation.navigate("Main")} />
+      <Button
+        title="결제 화면"
+        onPress={() => navigation.navigate("Payment")}
+      />
       <StatusBar style="auto" />
     </View>
   );
