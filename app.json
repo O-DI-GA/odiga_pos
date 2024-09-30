@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "waitingDevice",
-    "slug": "waitingDevice",
+    "name": "odiga_pos",
+    "slug": "odiga_pos",
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
