@@ -2,6 +2,14 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 const Payment = () => {
+  // 주문 내역 더미 데이터
+  const orderItems = [
+    { menu: "햄버거", quantity: 10, price: "50,000" },
+    { menu: "피자", quantity: 2, price: "30,000" },
+    { menu: "콜라", quantity: 5, price: "10,000" },
+    { menu: "감자튀김", quantity: 3, price: "12,000" },
+  ];
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.xButton}>
@@ -15,31 +23,17 @@ const Payment = () => {
             <Text>수량</Text>
             <Text>가격</Text>
           </View>
-
-          <View style={styles.orderDetailContainer}>
-            <Text>햄버거</Text>
-            <Text>10</Text>
-            <Text>50,000</Text>
-          </View>
-          <View style={styles.orderDetailContainer}>
-            <Text>햄버거</Text>
-            <Text>10</Text>
-            <Text>50,000</Text>
-          </View>
-          <View style={styles.orderDetailContainer}>
-            <Text>햄버거</Text>
-            <Text>10</Text>
-            <Text>50,000</Text>
-          </View>
-          <View style={styles.orderDetailContainer}>
-            <Text>햄버거</Text>
-            <Text>10</Text>
-            <Text>50,000</Text>
-          </View>
+          {orderItems.map((item, index) => (
+            <View style={styles.orderDetailContainer} key={index}>
+              <Text style={styles.orderTextMenu}>{item.menu}</Text>
+              <Text style={styles.orderTextQuantity}>{item.quantity}</Text>
+              <Text style={styles.orderTextPrice}>{item.price}</Text>
+            </View>
+          ))}
         </View>
         <View style={styles.orderSum}>
           <Text style={styles.sumText}>합계</Text>
-          <Text style={styles.sumText}>200,000원</Text>
+          <Text style={styles.sumText}>102,000원</Text>
         </View>
       </View>
       <View style={styles.tableNumContainer}>
@@ -101,6 +95,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 10,
+  },
+  orderTextMenu: {
+    flex: 1,
+  },
+  orderTextQuantity: {
+    flex: 1,
+    textAlign: "center",
+  },
+  orderTextPrice: {
+    flex: 1,
+    textAlign: "right",
   },
   orderSum: {
     flexDirection: "row",
