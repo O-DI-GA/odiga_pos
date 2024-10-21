@@ -1,5 +1,5 @@
 import React from "react";
-import {ScrollView, View, StyleSheet, Button} from "react-native";
+import {ScrollView, View, StyleSheet, Button, TouchableOpacity} from "react-native";
 import {Text} from "react-native";
 
 
@@ -19,21 +19,21 @@ const OrderList = () => {
         return orderList.find(order => order.tableId === tableId);
     };
 
-    // 취소 버튼
-    const deleteMenu = () => {
+    // 취소 버튼 핸들러
+    const deleteMenu = (tableId) => {
         // TODO : 취소 API 호출
-        alert("취소하시겠습니까? ");
-    }
+        alert(`${tableId}번 테이블의 주문을 취소하시겠습니까?`);
+    };
 
-    // 등록버튼
-    const acceptMenu = () => {
+    // 등록 버튼 핸들러
+    const acceptMenu = (tableId) => {
         // TODO : 등록 API 호출
-        alert("등록하시겠습니까? ");
-    }
+        alert(`${tableId}번 테이블의 주문을 등록하시겠습니까?`);
+    };
 
     return (
         <View style={styles.rightContainer}>
-            <Text> 주문목록 </Text>
+            <Text style={styles.orderText}> 주문목록 </Text>
             <ScrollView>
                 <View style={styles.tableContainer}>
                     {Array.from({ length: orderList.length }, (_, i) => {
@@ -52,9 +52,18 @@ const OrderList = () => {
                                         {order.menu.join(`\n`)}
                                     </Text>
                                 )}
-                                <View>
-                                    <Button title="취소" onPress={deleteMenu}/>
-                                    <Button title="확인"/>
+                                <View style={styles.buttonBox}>
+                                    <TouchableOpacity
+                                        style={styles.cancelBtn}
+                                        onPress={() => deleteMenu(tableId)}
+                                    >
+                                        <Text> 취소 </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.acceptBtn}
+                                        onPress={() => acceptMenu(tableId)}>
+                                        <Text> 확인 </Text>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         );
@@ -86,9 +95,18 @@ const styles = StyleSheet.create({
         height : '95%',
     },
     // 테이블
+    orderText : {
+        textAlign : 'center',
+        fontSize : 20,
+        marginBottom : 10,
+    },
     tableContainer : {
+        display : "flex",
         flexDirection: 'row',
         flexWrap: 'wrap',
+        justifyContent :'space-between',
+        alignItems : 'center',
+        marginBottom : 10,
     },
     table: {
         width: 200,
@@ -124,6 +142,27 @@ const styles = StyleSheet.create({
         marginTop: 5,
         fontSize: 14,
     },
+    cancelBtn : {
+        backgroundColor : "#D9D9D9",
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        textAlign : "center"
+    },
+    acceptBtn : {
+        backgroundColor : "#FFD600",
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        textAlign : "center"
+    },
+    buttonBox : {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop : 10,
+        gap : 10
+    }
 })
 
 export default OrderList;
