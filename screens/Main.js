@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from "react-native";
 
 import OrderList from "../component/OrderList";
+import {useNavigation} from "@react-navigation/native";
 
 const Main = () => {
+  const navigation = useNavigation()
 
   const [tableCnt, setTableCnt] = React.useState(0);
   const [orderList, setOrderList] = React.useState([
@@ -56,15 +58,18 @@ const Main = () => {
             </View>
           </ScrollView>
 
-          <View style={styles.waitingContainer}>
-            <View>
-              <Text> 웨이팅 현황 </Text>
+          <TouchableOpacity onPress={() => navigation.navigate(`WaitingList`)}>
+            <View style={styles.waitingContainer} >
+              <View>
+                <Text> 웨이팅 현황 </Text>
+              </View>
+              <View styl={styles.waitingText}>
+                <Text> 대기 인원 : {waitingInfo.waitingPerson}</Text>
+                <Text> 현재 번호 : {waitingInfo.currentNumber}</Text>
+              </View>
             </View>
-            <View styl={styles.waitingText}>
-              <Text> 대기 인원 : {waitingInfo.waitingPerson}</Text>
-              <Text> 현재 번호 : {waitingInfo.currentNumber}</Text>
-            </View>
-          </View>
+          </TouchableOpacity>
+
         </View>
 
         <View style={styles.rightBox}>
