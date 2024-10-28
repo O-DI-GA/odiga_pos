@@ -10,6 +10,7 @@ import { Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { loginAPI } from "../utils/useAuthUtils";
 import { useAuth } from "../utils/authContext";
+
 function Login() {
   const navigation = useNavigation();
   const { setIsLogged } = useAuth();
@@ -28,15 +29,15 @@ function Login() {
   const handleLogin = async () => {
     const response = await loginAPI(loginData, setIsLogged);
     if (response === "success") {
-      navigation.navigate("Main");
+      navigation.navigate("ShopList");
     }
     if (response === "fail") {
       Alert.alert("로그인 실패", "아이디 또는 비밀번호를 다시 확인하세요.");
     }
   };
+
   return (
     <View style={styles.container}>
-      {/*가운데 맞춤*/}
       <View style={styles.loginContainer}>
         <Text style={styles.loginText}> 로그인 </Text>
         <View style={styles.inputContainer}>
