@@ -4,7 +4,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthProvider } from "./utils/authContext";
 
-import Home from "./screens/Home";
 import Login from "./screens/Login";
 import Main from "./screens/Main";
 import Payment from "./screens/Payment";
@@ -18,7 +17,6 @@ function App() {
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Main" component={Main} />
           <Stack.Screen name="Payment" component={Payment} />
           <Stack.Screen name="WaitingList" component={WaitingList} />
