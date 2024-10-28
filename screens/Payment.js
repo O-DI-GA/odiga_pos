@@ -1,7 +1,16 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const Payment = () => {
+  const navigation = useNavigation();
+
+  const handleBackPress = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
+
   // 주문 내역 더미 데이터
   const orderItems = [
     { menu: "햄버거", quantity: 10, price: "50,000" },
@@ -12,7 +21,7 @@ const Payment = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.xButton}>
+      <TouchableOpacity style={styles.xButton} onPress={handleBackPress}>
         <Text style={styles.xText}>X</Text>
       </TouchableOpacity>
       <View style={styles.orderContainer}>
@@ -39,7 +48,10 @@ const Payment = () => {
       <View style={styles.tableNumContainer}>
         <Text style={styles.tableNumTitle}>테이블 번호</Text>
         <Text style={styles.tableNum}>3</Text>
-        <TouchableOpacity style={styles.payButton}>
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={() => Alert.alert("결제 완료", "결제가 완료되었습니다.")}
+        >
           <Text style={styles.payButtonText}>결제</Text>
         </TouchableOpacity>
       </View>
