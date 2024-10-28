@@ -40,3 +40,13 @@ export const removeTokens = async () => {
     console.log("토큰 제거 오류 : ", err);
   }
 };
+
+// 가게 아이디 저장
+export const saveStoreId = async (storeId) => {
+  try {
+    await AsyncStorage.setItem("storeId", storeId.toString());
+    console.log(`StoreId : ${storeId} 저장 성공`);
+  } catch (err) {
+    console.log("StoreId 저장 오류: ", err);
+  }
+};
