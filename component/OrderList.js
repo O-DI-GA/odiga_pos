@@ -79,8 +79,26 @@ const OrderList = () => {
 
   // 취소 버튼 핸들러
   const deleteMenu = (tableId) => {
-    // TODO : 취소 API 호출
-    Alert.alert(`${tableId}번 테이블의 주문을 취소하시겠습니까?`);
+    Alert.alert(
+      `${tableId}번 테이블의 주문을 취소하시겠습니까?`,
+      "",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "확인",
+          onPress: () => {
+            setOrderList((prevOrders) =>
+              prevOrders.filter((order) => order.tableId !== tableId)
+            );
+            Alert.alert("주문이 취소되었습니다.");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   // 등록 버튼 핸들러
