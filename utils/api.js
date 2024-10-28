@@ -1,11 +1,11 @@
 import { getTokenFromStorage } from "./tokenUtils";
 
-const URL = "http://13.125.83.255:8080";
+const URL = "http://13.125.83.255:8080/api/v1/owner";
 
 // GET
 export const getRequest = async (endpoint) => {
   try {
-    const response = await fetch(`${URL}/${endpoint}`, {
+    const response = await fetch(`${URL}${endpoint}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -23,7 +23,7 @@ export const getTokenRequest = async (endpoint) => {
   const token = await getTokenFromStorage();
   console.log("token : ", token);
   try {
-    const response = await fetch(`${URL}/${endpoint}`, {
+    const response = await fetch(`${URL}${endpoint}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export const getToken = async () => {
 export const postRequest = async (endpoint, data) => {
   // console.log("확인 : ", data);
   try {
-    const response = await fetch(`${URL}/${endpoint}`, {
+    const response = await fetch(`${URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +61,6 @@ export const postRequest = async (endpoint, data) => {
     return response.json();
   } catch (error) {
     console.error("POST Error:", error);
-    con;
     throw error;
   }
 };

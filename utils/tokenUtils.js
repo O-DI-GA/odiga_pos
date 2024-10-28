@@ -21,7 +21,7 @@ export const getTokenFromStorage = async () => {
     const value = await AsyncStorage.getItem("tokens");
     if (value !== null) {
       const tokens = JSON.parse(value);
-      const accessToken = tokens.accessToken;
+      const { accessToken } = tokens;
       return accessToken;
     } else {
       console.log("토큰 존재 X : return null");
