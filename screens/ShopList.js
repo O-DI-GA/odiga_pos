@@ -28,7 +28,7 @@ function ShopList() {
   useEffect(() => {
     try {
       const fetchShopList = async () => {
-        return await getTokenRequest("/store");
+        return await getTokenRequest("/owner/store");
       };
       fetchShopList()
         .then((res) => {
