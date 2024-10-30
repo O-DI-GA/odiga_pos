@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { getTokenRequest } from "../utils/api";
+import { getTokenRequest, postRequest } from "../utils/api";
 import { saveStoreId } from "../utils/tokenUtils";
 import messaging from "@react-native-firebase/messaging";
 
@@ -16,40 +16,33 @@ function ShopList() {
   const [shopList, setShopList] = React.useState([]);
 
   useEffect(() => {
-    const getToken = async () => {
-      const token = await messaging().getToken();
-      console.log("FCM Token:", token);
-      // 서버에 FCM 토큰 전송
+    const fetchShopList = async () => {
+      try {
+        const response = await getTokenRequest("/owner/store");
+        setShopList(response.data);
+      } catch (error) {
+        console.log("가게 리스트 요청 오류");
+      }
     };
 
-    getToken();
+    fetchShopList();
   }, []);
 
-  useEffect(() => {
+  const handleStoreSelect = async (storeId) => {
     try {
-      const fetchShopList = async () => {
-        return await getTokenRequest("/owner/store");
-      };
-      fetchShopList()
-        .then((res) => {
-          // console.log(res.data)
-          setShopList(res.data);
-        })
-        .catch((err) => {
-          console.log("가게 리스트 요청 오류");
-        });
-    } catch (error) {}
-  }, []);
+      await saveStoreId(storeId);
 
-  // 가게 아이디 저장
-  const handleStoreSelect = (storeId) => {
-    try {
-      saveStoreId(storeId)
-        .then((res) => {
-          navigation.navigate("Main");
-        })
-        .catch((err) => {});
-    } catch (err) {}
+      const fcmToken = await messaging().getToken();
+      console.log("FCM Token:", fcmToken);
+
+      const data = { fcmToken, storeId };
+      const response = await postRequest("/store/fcm", data);
+      console.log("서버 응답:", response);
+
+      navigation.navigate("Main");
+    } catch (error) {
+      console.error("가게 선택 및 FCM 토큰 전송 에러:", error);
+    }
   };
 
   return (
