@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 
-const OrderList = () => {
+const OrderList = ({ fetchOrders }) => {
   const [orderList, setOrderList] = useState([]);
 
   useEffect(() => {
@@ -103,8 +103,27 @@ const OrderList = () => {
 
   // 등록 버튼 핸들러
   const acceptMenu = (tableId) => {
-    // TODO : 등록 API 호출
-    Alert.alert(`${tableId}번 테이블의 주문을 등록하시겠습니까?`);
+    Alert.alert(
+      `${tableId}번 테이블의 주문을 등록하시겠습니까?`,
+      "",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "확인",
+          onPress: () => {
+            fetchOrders();
+            setOrderList((prevOrders) =>
+              prevOrders.filter((order) => order.tableId !== tableId)
+            );
+            Alert.alert("주문이 등록되었습니다.");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (

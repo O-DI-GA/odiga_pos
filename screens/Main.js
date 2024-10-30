@@ -21,43 +21,44 @@ const Main = () => {
     currentNumber: 103, // 현재 번호
   });
 
-  useEffect(() => {
-    const initializeData = async () => {
-      try {
-        const storeId = await getStoreId();
-        if (storeId) {
-          console.log(`Fetched Store ID: ${storeId}`);
+  const fetchOrders = async () => {
+    try {
+      const storeId = await getStoreId();
+      if (storeId) {
+        console.log(`Fetched Store ID: ${storeId}`);
 
-          // TODO: 테이블 수 서버에서 가져오기
-          setTableCnt(10);
+        // TODO: 테이블 수 서버에서 가져오기
+        setTableCnt(10);
 
-          const response = await getRequest(`/table/${storeId}/order`);
-          if (response?.httpStatusCode === 201) {
-            const formattedOrders = response.data.map((order) => ({
-              tableId: order.tableNumber,
-              menu: order.tableOrderMenus.map(
-                (menu) => `${menu.menuName} x${menu.menuCount}`
-              ),
-              price: order.totalTableOrderPrice,
-            }));
-            setOrderList(formattedOrders);
-          } else {
-            console.error(
-              "Failed to fetch order list:",
-              response.responseMessage
-            );
-          }
-
-          // TODO: 웨이팅 정보 서버에서 가져오기
+        const response = await getRequest(`/table/${storeId}/order`);
+        if (response?.httpStatusCode === 201) {
+          const formattedOrders = response.data.map((order) => ({
+            tableId: order.tableNumber,
+            menu: order.tableOrderMenus.map(
+              (menu) => `${menu.menuName} x${menu.menuCount}`
+            ),
+            price: order.totalTableOrderPrice,
+          }));
+          setOrderList(formattedOrders);
+          console.log("테이블 별 주문내역 새로 불러오기 성공");
         } else {
-          console.log("Store ID가 없습니다.");
+          console.error(
+            "Failed to fetch order list:",
+            response.responseMessage
+          );
         }
-      } catch (error) {
-        console.error("Error initializing data:", error);
-      }
-    };
 
-    initializeData();
+        // TODO: 웨이팅 정보 서버에서 가져오기
+      } else {
+        console.log("Store ID가 없습니다.");
+      }
+    } catch (error) {
+      console.error("Error initializing data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
   }, []);
 
   const getOrderForTable = (tableId) => {
@@ -111,7 +112,7 @@ const Main = () => {
       </View>
 
       <View style={styles.rightBox}>
-        <OrderList />
+        <OrderList fetchOrders={fetchOrders} />
       </View>
     </View>
   );
