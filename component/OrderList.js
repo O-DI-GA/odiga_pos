@@ -31,35 +31,59 @@ const OrderList = ({ fetchOrders }) => {
 
     // 포그라운드 메시지 수신 설정
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log("받은 FCM 메시지:", remoteMessage);
+      console.log("받은 FCM 메시지:", remoteMessage.data);
 
-      if (
-        remoteMessage &&
-        remoteMessage.notification &&
-        remoteMessage.notification.body
-      ) {
+      if (remoteMessage && remoteMessage.data && remoteMessage.data.data) {
         try {
-          const parsedString = JSON.parse(remoteMessage.notification.body);
-          const newOrder = JSON.parse(parsedString);
+          const type = remoteMessage.data.type;
+          const rawData = JSON.parse(remoteMessage.data.data);
 
           setOrderList((prevOrders) => {
-            // 동일한 tableId의 주문이 이미 있는지 확인
-            const existingOrderIndex = prevOrders.findIndex(
-              (order) => order.tableId === newOrder.tableId
+            const updatedOrders = [...prevOrders];
+            const existingOrderIndex = updatedOrders.findIndex(
+              (order) => order.tableNumber === rawData.tableNumber
             );
 
             if (existingOrderIndex !== -1) {
-              // 기존 주문을 업데이트
-              const updatedOrders = [...prevOrders];
-              updatedOrders[existingOrderIndex] = newOrder;
-              return updatedOrders;
+              // 기존 항목이 있는 경우 데이터를 병합
+              if (type === "call") {
+                console.log("직원호출:", rawData);
+                updatedOrders[existingOrderIndex] = {
+                  ...updatedOrders[existingOrderIndex],
+                  data: [
+                    ...(updatedOrders[existingOrderIndex].data || []),
+                    { menuName: rawData.data, menuCount: "" },
+                  ],
+                };
+              } else if (type === "order") {
+                console.log("새 주문:", rawData);
+                updatedOrders[existingOrderIndex] = {
+                  ...updatedOrders[existingOrderIndex],
+                  data: [
+                    ...(updatedOrders[existingOrderIndex].data || []),
+                    ...rawData.data,
+                  ],
+                };
+              }
             } else {
-              // 새로운 주문을 추가
-              return [...prevOrders, newOrder];
+              // 기존 항목이 없는 경우 새로 추가
+              if (type === "call") {
+                updatedOrders.push({
+                  tableNumber: rawData.tableNumber,
+                  data: [{ menuName: rawData.data, menuCount: "" }],
+                  type: "call",
+                });
+              } else if (type === "order") {
+                updatedOrders.push({
+                  tableNumber: rawData.tableNumber,
+                  data: rawData.data,
+                  type: "order",
+                });
+              }
             }
-          });
 
-          console.log("새 주문:", newOrder);
+            return updatedOrders;
+          });
         } catch (error) {
           console.error("JSON Parse error:", error);
         }
@@ -78,9 +102,9 @@ const OrderList = ({ fetchOrders }) => {
   };
 
   // 취소 버튼 핸들러
-  const deleteMenu = (tableId) => {
+  const deleteMenu = (tableNumber) => {
     Alert.alert(
-      `${tableId}번 테이블의 주문을 취소하시겠습니까?`,
+      `${tableNumber}번 테이블의 주문을 취소하시겠습니까?`,
       "",
       [
         {
@@ -91,7 +115,7 @@ const OrderList = ({ fetchOrders }) => {
           text: "확인",
           onPress: () => {
             setOrderList((prevOrders) =>
-              prevOrders.filter((order) => order.tableId !== tableId)
+              prevOrders.filter((order) => order.tableNumber !== tableNumber)
             );
             Alert.alert("주문이 취소되었습니다.");
           },
@@ -102,9 +126,9 @@ const OrderList = ({ fetchOrders }) => {
   };
 
   // 등록 버튼 핸들러
-  const acceptMenu = (tableId) => {
+  const acceptMenu = (tableNumber) => {
     Alert.alert(
-      `${tableId}번 테이블의 주문을 등록하시겠습니까?`,
+      `${tableNumber}번 테이블의 주문을 등록하시겠습니까?`,
       "",
       [
         {
@@ -116,7 +140,7 @@ const OrderList = ({ fetchOrders }) => {
           onPress: () => {
             fetchOrders();
             setOrderList((prevOrders) =>
-              prevOrders.filter((order) => order.tableId !== tableId)
+              prevOrders.filter((order) => order.tableNumber !== tableNumber)
             );
             Alert.alert("주문이 등록되었습니다.");
           },
@@ -132,29 +156,28 @@ const OrderList = ({ fetchOrders }) => {
       <ScrollView>
         <View style={styles.tableContainer}>
           {orderList.length > 0 ? (
-            orderList.map((order) => (
-              <View
-                key={order.tableId}
-                style={[styles.table, styles.occupiedTable]}
-              >
-                <Text style={styles.tableId}>{order.tableId}</Text>
-                {order.menu ? (
-                  <Text style={styles.orderDetails}>
-                    {order.menu.join(`\n`)}
-                  </Text>
-                ) : (
-                  <Text style={styles.orderDetails}>No items</Text>
-                )}
+            orderList.map((item, index) => (
+              <View key={index} style={[styles.table, styles.occupiedTable]}>
+                <Text style={styles.tableId}>{item.tableNumber}</Text>
+                <View style={styles.orderDetails}>
+                  {item.data &&
+                    item.data.map((menuItem, idx) => (
+                      <Text key={idx}>
+                        {menuItem.menuName}
+                        {menuItem.menuCount ? ` x ${menuItem.menuCount}` : ""}
+                      </Text>
+                    ))}
+                </View>
                 <View style={styles.buttonBox}>
                   <TouchableOpacity
                     style={styles.cancelBtn}
-                    onPress={() => deleteMenu(order.tableId)}
+                    onPress={() => deleteMenu(item.tableNumber)}
                   >
                     <Text> 취소 </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.acceptBtn}
-                    onPress={() => acceptMenu(order.tableId)}
+                    onPress={() => acceptMenu(item.tableNumber)}
                   >
                     <Text> 확인 </Text>
                   </TouchableOpacity>
