@@ -50,3 +50,20 @@ export const saveStoreId = async (storeId) => {
     console.log("StoreId 저장 오류: ", err);
   }
 };
+
+// 가게 아이디 불러오기
+export const getStoreId = async () => {
+  try {
+    const storeId = await AsyncStorage.getItem("storeId");
+    if (storeId !== null) {
+      console.log(`StoreId 불러오기 성공: ${storeId}`);
+      return storeId;
+    } else {
+      console.log("StoreId가 없습니다.");
+      return null;
+    }
+  } catch (err) {
+    console.log("StoreId 불러오기 오류: ", err);
+    return null;
+  }
+};

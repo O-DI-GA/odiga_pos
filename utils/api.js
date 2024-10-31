@@ -1,6 +1,6 @@
 import { getTokenFromStorage } from "./tokenUtils";
 
-const URL = "http://13.125.83.255:8080/api/v1/owner";
+const URL = "http://13.125.83.255:8080/api/v1";
 
 // GET
 export const getRequest = async (endpoint) => {
