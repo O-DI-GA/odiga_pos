@@ -8,6 +8,8 @@ import {
   Alert,
 } from "react-native";
 import messaging from "@react-native-firebase/messaging";
+import { deleteDataRequest } from "../utils/api";
+import { getStoreId } from "../utils/tokenUtils";
 
 const OrderList = ({ fetchOrders }) => {
   const [orderList, setOrderList] = useState([]);
@@ -113,11 +115,37 @@ const OrderList = ({ fetchOrders }) => {
         },
         {
           text: "확인",
-          onPress: () => {
-            setOrderList((prevOrders) =>
-              prevOrders.filter((order) => order.tableNumber !== tableNumber)
-            );
-            Alert.alert("주문이 취소되었습니다.");
+          onPress: async () => {
+            try {
+              const storeId = await getStoreId();
+              const order = orderList.find(
+                (orderItem) => orderItem.tableNumber === tableNumber
+              );
+              const data = {
+                tableOrderMenuforManages: order.data.map((menuItem) => ({
+                  menuName: menuItem.menuName,
+                  menuCount: Number(menuItem.menuCount),
+                })),
+              };
+              const response = await deleteDataRequest(
+                `table/${storeId}/order/${tableNumber}`,
+                data
+              );
+              if (response.httpStatusCode === 201) {
+                setOrderList((prevOrders) =>
+                  prevOrders.filter(
+                    (order) => order.tableNumber !== tableNumber
+                  )
+                );
+                Alert.alert("주문이 취소되었습니다.");
+                fetchOrders();
+              } else {
+                Alert.alert("주문 취소에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("Error:", error);
+              Alert.alert("서버와의 통신에 실패했습니다.");
+            }
           },
         },
       ],
