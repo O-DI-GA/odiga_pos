@@ -10,6 +10,7 @@ import {
 import { StyleSheet } from "react-native";
 import OrderList from "../component/OrderList";
 import { useRoute } from "@react-navigation/native";
+import { getTokenRequest } from "../utils/api";
 
 const WaitingList = () => {
   const route = useRoute();
@@ -21,10 +22,28 @@ const WaitingList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState([]);
 
-  // 모달 오픈
-  const onPressModalOpen = (menu) => {
-    setSelectedMenu(menu);
-    setIsModalOpen(true);
+  // 모달 오픈 및 메뉴 불러오기
+  const onPressModalOpen = async (waitingId) => {
+    try {
+      const response = await getTokenRequest(
+        `/owner/waiting/waitingMenuList/${waitingId}`
+      );
+      if (response.httpStatusCode === 200) {
+        const menuData = response.data.map((item) => ({
+          menuName: item.menu.menuName,
+          count: item.menuCount,
+        }));
+        setSelectedMenu(menuData);
+        setIsModalOpen(true);
+      } else {
+        console.error(
+          "Failed to fetch waiting menu list:",
+          response.responseMessage
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+    }
   };
 
   // 모달 닫기
@@ -39,9 +58,13 @@ const WaitingList = () => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>주문 내역</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>메뉴</Text>
+              <Text style={styles.modalHeaderText}>수량</Text>
+            </View>
             {selectedMenu.map((item, index) => (
               <View key={index} style={styles.modalItem}>
-                <Text>{item.menu}</Text>
+                <Text>{item.menuName}</Text>
                 <Text>{item.count}</Text>
               </View>
             ))}
@@ -49,7 +72,7 @@ const WaitingList = () => {
               onPress={onPressModalClose}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>확인</Text>
+              <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -69,7 +92,7 @@ const WaitingList = () => {
         <View style={styles.waitingBtnBox}>
           <Text>{item.peopleCount}명</Text>
           <Pressable
-            onPress={() => onPressModalOpen(item.menu)}
+            onPress={() => onPressModalOpen(item.waitingId)}
             style={styles.menuButton}
           >
             <Text style={styles.menuButtonText}>메뉴보기</Text>
@@ -92,6 +115,7 @@ const WaitingList = () => {
           <Text>대기 인원 : {waitingInfo?.waitingPerson || 0}명</Text>
           <Text>현재 번호 : {waitingInfo?.currentNumber || 0}번</Text>
         </View>
+
         <FlatList
           data={waitingList}
           renderItem={renderWaitingItem}
@@ -199,15 +223,29 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalView: {
-    width: 300,
+    width: 250,
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 20,
+    paddingHorizontal: 40,
     alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
     marginBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "#ddd",
+    borderStyle: "dashed",
+    paddingBottom: 5,
+  },
+  modalHeaderText: {
+    fontWeight: "bold",
   },
   modalItem: {
     flexDirection: "row",
