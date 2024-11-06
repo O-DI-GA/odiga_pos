@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,48 +9,17 @@ import {
 } from "react-native";
 import { StyleSheet } from "react-native";
 import OrderList from "../component/OrderList";
+import { useRoute } from "@react-navigation/native";
 
 const WaitingList = () => {
-  const [orderInfo, setOrderInfo] = React.useState([
-    { currentNumber: 103, waitingPeople: 5 },
-  ]);
-  const [waitingList, setWaitingList] = React.useState([
-    {
-      waitingId: 1,
-      waitingNum: 104,
-      resName: "김형준",
-      peopleCount: 2,
-      menu: [
-        { menu: "햄버거", count: 10 },
-        { menu: "감자튀김", count: 10 },
-      ],
-    },
-    {
-      waitingId: 2,
-      waitingNum: 105,
-      resName: "구자현",
-      peopleCount: 1,
-      menu: [
-        { menu: "치킨버거", count: 1 },
-        { menu: "양념감자", count: 1 },
-        { menu: "콜라", count: 1 },
-      ],
-    },
-    {
-      waitingId: 3,
-      waitingNum: 106,
-      resName: "김건택",
-      peopleCount: 1,
-      menu: [
-        { menu: "싸이버거", count: 2 },
-        { menu: "감자튀김", count: 1 },
-        { menu: "콜라", count: 1 },
-      ],
-    },
-  ]);
+  const route = useRoute();
+  const {
+    waitingInfo = { waitingPerson: 0, currentNumber: 0 },
+    waitingList = [],
+  } = route.params || {};
 
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedMenu, setSelectedMenu] = React.useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState([]);
 
   // 모달 오픈
   const onPressModalOpen = (menu) => {
@@ -93,9 +62,9 @@ const WaitingList = () => {
       <View style={styles.waitingItem}>
         <View style={styles.waitingInfo}>
           <View style={styles.waitingNumber}>
-            <Text>{item.waitingNum}</Text>
+            <Text>{item.waitingNumber}</Text>
           </View>
-          <Text>{item.resName}님</Text>
+          <Text>{item.userName}님</Text>
         </View>
         <View style={styles.waitingBtnBox}>
           <Text>{item.peopleCount}명</Text>
@@ -120,8 +89,8 @@ const WaitingList = () => {
           <Text style={styles.title}>웨이팅 현황</Text>
         </View>
         <View style={styles.status}>
-          <Text>대기 인원 : {orderInfo[0].waitingPeople}명</Text>
-          <Text>현재 번호 : {orderInfo[0].currentNumber}번</Text>
+          <Text>대기 인원 : {waitingInfo?.waitingPerson || 0}명</Text>
+          <Text>현재 번호 : {waitingInfo?.currentNumber || 0}번</Text>
         </View>
         <FlatList
           data={waitingList}
