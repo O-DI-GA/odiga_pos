@@ -86,12 +86,13 @@ export const putRequest = async (endpoint, data) => {
 };
 
 // DELETE
-export const deleteRequest = async (endpoint) => {
+export const deleteRequest = async (endpoint, option = {}) => {
   try {
     const response = await fetch(`${URL}/${endpoint}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        ...option.headers,
       },
     });
     return await response.json();
