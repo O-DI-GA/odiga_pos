@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import OrderList from "../component/OrderList";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getRequest, getTokenRequest } from "../utils/api";
 import { getStoreId } from "../utils/tokenUtils";
 
@@ -20,7 +20,6 @@ const Main = () => {
     waitingPerson: 0,
     currentNumber: 0,
   });
-  const [waitingList, setWaitingList] = useState([]);
 
   const fetchOrders = async () => {
     try {
@@ -68,9 +67,7 @@ const Main = () => {
             currentNumber:
               waitingList.length > 0 ? waitingList[0].waitingNumber - 1 : 0,
           });
-          setWaitingList(waitingList);
           console.log("waiting info:", waitingInfo);
-          console.log("waitingList:", waitingList);
         } else {
           console.error(
             "Failed to fetch waiting info:",
@@ -89,6 +86,13 @@ const Main = () => {
     fetchOrders();
     fetchWaitingInfo();
   }, []);
+
+  // Main 화면에 포커스가 돌아올 때마다 fetchWaitingInfo 호출
+  useFocusEffect(
+    useCallback(() => {
+      fetchWaitingInfo();
+    }, [])
+  );
 
   const getOrderForTable = (tableId) => {
     return orderList.find((order) => order.tableId === tableId);
@@ -127,11 +131,7 @@ const Main = () => {
           </View>
         </ScrollView>
 
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("WaitingList", { waitingInfo, waitingList })
-          }
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("WaitingList")}>
           <View style={styles.waitingContainer}>
             <View>
               <Text> 웨이팅 현황 </Text>
