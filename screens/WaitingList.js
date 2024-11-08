@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,24 +6,59 @@ import {
   Pressable,
   Modal,
   FlatList,
+  StyleSheet,
 } from "react-native";
-import { StyleSheet } from "react-native";
 import OrderList from "../component/OrderList";
-import { useRoute } from "@react-navigation/native";
-import { getTokenRequest } from "../utils/api";
+import { getTokenRequest, deleteRequest, getToken } from "../utils/api";
+import { getStoreId } from "../utils/tokenUtils";
 
 const WaitingList = () => {
-  const route = useRoute();
-  const {
-    waitingInfo = { waitingPerson: 0, currentNumber: 0 },
-    waitingList = [],
-  } = route.params || {};
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState([]);
+  const [waitingList, setWaitingList] = useState(waitingList);
+  const [waitingInfo, setWaitingInfo] = useState({
+    waitingPerson: 0,
+    currentNumber: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchWaitingInfo = async () => {
+    try {
+      const storeId = await getStoreId();
+      if (storeId) {
+        const response = await getTokenRequest(`/owner/waiting/${storeId}`);
+        if (response.httpStatusCode === 200) {
+          const updatedWaitingList = response.data;
+          setWaitingList(updatedWaitingList);
+          setWaitingInfo({
+            waitingPerson: updatedWaitingList.length,
+            currentNumber:
+              updatedWaitingList.length > 0
+                ? updatedWaitingList[0].waitingNumber - 1
+                : 0,
+          });
+        } else {
+          console.error(
+            "Failed to fetch waiting info:",
+            response.responseMessage
+          );
+        }
+      } else {
+        console.log("Store ID가 없습니다.");
+      }
+    } catch (error) {
+      console.error("Error fetching waiting info:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWaitingInfo();
+  }, []);
 
   // 모달 오픈 및 메뉴 불러오기
   const onPressModalOpen = async (waitingId) => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const response = await getTokenRequest(
         `/owner/waiting/waitingMenuList/${waitingId}`
@@ -43,6 +78,28 @@ const WaitingList = () => {
       }
     } catch (error) {
       console.error("Error fetching menu:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onPressCancel = async (waitingId) => {
+    try {
+      const token = await getToken();
+      const response = await deleteRequest(`user/waiting/${waitingId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.httpStatusCode === 200) {
+        console.log("웨이팅 취소 성공");
+        await fetchWaitingInfo();
+      } else {
+        console.error("Failed to cancel waiting:", response);
+      }
+    } catch (error) {
+      console.error("Error canceling waiting:", error);
     }
   };
 
@@ -97,7 +154,10 @@ const WaitingList = () => {
           >
             <Text style={styles.menuButtonText}>메뉴보기</Text>
           </Pressable>
-          <TouchableOpacity style={styles.cancelButton}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => onPressCancel(item.waitingId)}
+          >
             <Text style={styles.cancelButtonText}>취소</Text>
           </TouchableOpacity>
         </View>
