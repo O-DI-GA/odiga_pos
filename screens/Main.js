@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import OrderList from "../component/OrderList";
-import { useNavigation } from "@react-navigation/native";
-import { getRequest } from "../utils/api";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { getRequest, getTokenRequest } from "../utils/api";
 import { getStoreId } from "../utils/tokenUtils";
 
 const Main = () => {
@@ -17,8 +17,8 @@ const Main = () => {
   const [tableCnt, setTableCnt] = useState(0);
   const [orderList, setOrderList] = useState([]);
   const [waitingInfo, setWaitingInfo] = useState({
-    waitingPerson: 4, // 대기인원
-    currentNumber: 103, // 현재 번호
+    waitingPerson: 0,
+    currentNumber: 0,
   });
 
   const fetchOrders = async () => {
@@ -47,8 +47,6 @@ const Main = () => {
             response.responseMessage
           );
         }
-
-        // TODO: 웨이팅 정보 서버에서 가져오기
       } else {
         console.log("Store ID가 없습니다.");
       }
@@ -57,9 +55,44 @@ const Main = () => {
     }
   };
 
+  const fetchWaitingInfo = async () => {
+    try {
+      const storeId = await getStoreId();
+      if (storeId) {
+        const response = await getTokenRequest(`/owner/waiting/${storeId}`);
+        if (response.httpStatusCode === 200) {
+          const waitingList = response.data;
+          setWaitingInfo({
+            waitingPerson: waitingList.length > 0 ? waitingList.length : 0,
+            currentNumber:
+              waitingList.length > 0 ? waitingList[0].waitingNumber - 1 : 0,
+          });
+          console.log("waiting info:", waitingInfo);
+        } else {
+          console.error(
+            "Failed to fetch waiting info:",
+            response.responseMessage
+          );
+        }
+      } else {
+        console.log("Store ID가 없습니다.");
+      }
+    } catch (error) {
+      console.error("Error fetching waiting info:", error);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchWaitingInfo();
   }, []);
+
+  // Main 화면에 포커스가 돌아올 때마다 fetchWaitingInfo 호출
+  useFocusEffect(
+    useCallback(() => {
+      fetchWaitingInfo();
+    }, [])
+  );
 
   const getOrderForTable = (tableId) => {
     return orderList.find((order) => order.tableId === tableId);
@@ -98,12 +131,12 @@ const Main = () => {
           </View>
         </ScrollView>
 
-        <TouchableOpacity onPress={() => navigation.navigate(`WaitingList`)}>
+        <TouchableOpacity onPress={() => navigation.navigate("WaitingList")}>
           <View style={styles.waitingContainer}>
             <View>
               <Text> 웨이팅 현황 </Text>
             </View>
-            <View styl={styles.waitingText}>
+            <View style={styles.waitingText}>
               <Text> 대기 인원 : {waitingInfo.waitingPerson}</Text>
               <Text> 현재 번호 : {waitingInfo.currentNumber}</Text>
             </View>

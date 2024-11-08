@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,56 +6,101 @@ import {
   Pressable,
   Modal,
   FlatList,
+  StyleSheet,
 } from "react-native";
-import { StyleSheet } from "react-native";
 import OrderList from "../component/OrderList";
+import { getTokenRequest, deleteRequest, getToken } from "../utils/api";
+import { getStoreId } from "../utils/tokenUtils";
 
 const WaitingList = () => {
-  const [orderInfo, setOrderInfo] = React.useState([
-    { currentNumber: 103, waitingPeople: 5 },
-  ]);
-  const [waitingList, setWaitingList] = React.useState([
-    {
-      waitingId: 1,
-      waitingNum: 104,
-      resName: "김형준",
-      peopleCount: 2,
-      menu: [
-        { menu: "햄버거", count: 10 },
-        { menu: "감자튀김", count: 10 },
-      ],
-    },
-    {
-      waitingId: 2,
-      waitingNum: 105,
-      resName: "구자현",
-      peopleCount: 1,
-      menu: [
-        { menu: "치킨버거", count: 1 },
-        { menu: "양념감자", count: 1 },
-        { menu: "콜라", count: 1 },
-      ],
-    },
-    {
-      waitingId: 3,
-      waitingNum: 106,
-      resName: "김건택",
-      peopleCount: 1,
-      menu: [
-        { menu: "싸이버거", count: 2 },
-        { menu: "감자튀김", count: 1 },
-        { menu: "콜라", count: 1 },
-      ],
-    },
-  ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMenu, setSelectedMenu] = useState([]);
+  const [waitingList, setWaitingList] = useState(waitingList);
+  const [waitingInfo, setWaitingInfo] = useState({
+    waitingPerson: 0,
+    currentNumber: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedMenu, setSelectedMenu] = React.useState([]);
+  const fetchWaitingInfo = async () => {
+    try {
+      const storeId = await getStoreId();
+      if (storeId) {
+        const response = await getTokenRequest(`/owner/waiting/${storeId}`);
+        if (response.httpStatusCode === 200) {
+          const updatedWaitingList = response.data;
+          setWaitingList(updatedWaitingList);
+          setWaitingInfo({
+            waitingPerson: updatedWaitingList.length,
+            currentNumber:
+              updatedWaitingList.length > 0
+                ? updatedWaitingList[0].waitingNumber - 1
+                : 0,
+          });
+        } else {
+          console.error(
+            "Failed to fetch waiting info:",
+            response.responseMessage
+          );
+        }
+      } else {
+        console.log("Store ID가 없습니다.");
+      }
+    } catch (error) {
+      console.error("Error fetching waiting info:", error);
+    }
+  };
 
-  // 모달 오픈
-  const onPressModalOpen = (menu) => {
-    setSelectedMenu(menu);
-    setIsModalOpen(true);
+  useEffect(() => {
+    fetchWaitingInfo();
+  }, []);
+
+  // 모달 오픈 및 메뉴 불러오기
+  const onPressModalOpen = async (waitingId) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const response = await getTokenRequest(
+        `/owner/waiting/waitingMenuList/${waitingId}`
+      );
+      if (response.httpStatusCode === 200) {
+        const menuData = response.data.map((item) => ({
+          menuName: item.menu.menuName,
+          count: item.menuCount,
+        }));
+        setSelectedMenu(menuData);
+        setIsModalOpen(true);
+      } else {
+        console.error(
+          "Failed to fetch waiting menu list:",
+          response.responseMessage
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onPressCancel = async (waitingId) => {
+    try {
+      const token = await getToken();
+      const response = await deleteRequest(`user/waiting/${waitingId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.httpStatusCode === 200) {
+        console.log("웨이팅 취소 성공");
+        await fetchWaitingInfo();
+      } else {
+        console.error("Failed to cancel waiting:", response);
+      }
+    } catch (error) {
+      console.error("Error canceling waiting:", error);
+    }
   };
 
   // 모달 닫기
@@ -70,9 +115,13 @@ const WaitingList = () => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>주문 내역</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>메뉴</Text>
+              <Text style={styles.modalHeaderText}>수량</Text>
+            </View>
             {selectedMenu.map((item, index) => (
               <View key={index} style={styles.modalItem}>
-                <Text>{item.menu}</Text>
+                <Text>{item.menuName}</Text>
                 <Text>{item.count}</Text>
               </View>
             ))}
@@ -80,7 +129,7 @@ const WaitingList = () => {
               onPress={onPressModalClose}
               style={styles.closeButton}
             >
-              <Text style={styles.closeButtonText}>확인</Text>
+              <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -93,19 +142,22 @@ const WaitingList = () => {
       <View style={styles.waitingItem}>
         <View style={styles.waitingInfo}>
           <View style={styles.waitingNumber}>
-            <Text>{item.waitingNum}</Text>
+            <Text>{item.waitingNumber}</Text>
           </View>
-          <Text>{item.resName}님</Text>
+          <Text>{item.userName}님</Text>
         </View>
         <View style={styles.waitingBtnBox}>
           <Text>{item.peopleCount}명</Text>
           <Pressable
-            onPress={() => onPressModalOpen(item.menu)}
+            onPress={() => onPressModalOpen(item.waitingId)}
             style={styles.menuButton}
           >
             <Text style={styles.menuButtonText}>메뉴보기</Text>
           </Pressable>
-          <TouchableOpacity style={styles.cancelButton}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => onPressCancel(item.waitingId)}
+          >
             <Text style={styles.cancelButtonText}>취소</Text>
           </TouchableOpacity>
         </View>
@@ -120,9 +172,10 @@ const WaitingList = () => {
           <Text style={styles.title}>웨이팅 현황</Text>
         </View>
         <View style={styles.status}>
-          <Text>대기 인원 : {orderInfo[0].waitingPeople}명</Text>
-          <Text>현재 번호 : {orderInfo[0].currentNumber}번</Text>
+          <Text>대기 인원 : {waitingInfo?.waitingPerson || 0}명</Text>
+          <Text>현재 번호 : {waitingInfo?.currentNumber || 0}번</Text>
         </View>
+
         <FlatList
           data={waitingList}
           renderItem={renderWaitingItem}
@@ -230,15 +283,29 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalView: {
-    width: 300,
+    width: 250,
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 20,
+    paddingHorizontal: 40,
     alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
     marginBottom: 30,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "#ddd",
+    borderStyle: "dashed",
+    paddingBottom: 5,
+  },
+  modalHeaderText: {
+    fontWeight: "bold",
   },
   modalItem: {
     flexDirection: "row",

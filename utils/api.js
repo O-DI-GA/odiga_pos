@@ -86,13 +86,31 @@ export const putRequest = async (endpoint, data) => {
 };
 
 // DELETE
-export const deleteRequest = async (endpoint) => {
+export const deleteRequest = async (endpoint, option = {}) => {
+  try {
+    const response = await fetch(`${URL}/${endpoint}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...option.headers,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
+  }
+};
+
+// DELETE with data
+export const deleteDataRequest = async (endpoint, data) => {
   try {
     const response = await fetch(`${URL}/${endpoint}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(data),
     });
     return await response.json();
   } catch (error) {
