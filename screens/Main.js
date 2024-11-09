@@ -25,21 +25,22 @@ const Main = () => {
     try {
       const storeId = await getStoreId();
       if (storeId) {
-        console.log(`Fetched Store ID: ${storeId}`);
-
-        // TODO: 테이블 수 서버에서 가져오기
-        setTableCnt(10);
-
         const response = await getRequest(`/table/${storeId}/order`);
-        if (response?.httpStatusCode === 201) {
-          const formattedOrders = response.data.map((order) => ({
-            tableId: order.tableNumber,
-            menu: order.tableOrderMenus.map(
-              (menu) => `${menu.menuName} x${menu.menuCount}`
-            ),
-            price: order.totalTableOrderPrice,
-          }));
-          setOrderList(formattedOrders);
+        if (response?.httpStatusCode === 200) {
+          if (response.orderHistoryList) {
+            const formattedOrders = response.data.orderHistoryList.map(
+              (order) => ({
+                tableId: order.tableNumber,
+                menu: order.tableOrderMenus.map(
+                  (menu) => `${menu.menuName} x${menu.menuCount}`
+                ),
+                price: order.totalTableOrderPrice,
+              })
+            );
+            setOrderList(formattedOrders);
+          }
+          const tableCount = response.data.tableCount;
+          setTableCnt(tableCount);
           console.log("테이블 별 주문내역 새로 불러오기 성공");
         } else {
           console.error(
@@ -84,7 +85,6 @@ const Main = () => {
 
   useEffect(() => {
     fetchOrders();
-    fetchWaitingInfo();
   }, []);
 
   // Main 화면에 포커스가 돌아올 때마다 fetchWaitingInfo 호출
