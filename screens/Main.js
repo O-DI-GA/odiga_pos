@@ -27,7 +27,7 @@ const Main = () => {
       if (storeId) {
         const response = await getRequest(`/table/${storeId}/order`);
         if (response?.httpStatusCode === 200) {
-          if (response.orderHistoryList) {
+          if (response.data.orderHistoryList) {
             const formattedOrders = response.data.orderHistoryList.map(
               (order) => ({
                 tableId: order.tableNumber,
@@ -207,8 +207,8 @@ const styles = StyleSheet.create({
   },
   orderDetails: {
     position: "absolute",
-    top: 50,
-    left: 50,
+    top: 35,
+    left: 30,
     marginTop: 5,
     fontSize: 20,
   },
