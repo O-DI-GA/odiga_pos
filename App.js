@@ -17,11 +17,43 @@ function App() {
     <AuthProvider>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="ShopList" component={ShopList} />
-          <Stack.Screen name="Main" component={Main} />
-          <Stack.Screen name="Payment" component={Payment} />
-          <Stack.Screen name="WaitingList" component={WaitingList} />
+          <Stack.Screen
+            name="Login"
+            component={Login}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ShopList"
+            component={ShopList}
+            options={{
+              headerTitle: "",
+              headerBackTitleVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={Main}
+            options={{
+              headerTitle: "",
+              headerBackTitleVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Payment"
+            component={Payment}
+            options={{
+              headerTitle: "",
+              headerBackTitleVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="WaitingList"
+            component={WaitingList}
+            options={{
+              headerTitle: "",
+              headerBackTitleVisible: false,
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
